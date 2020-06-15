@@ -40,6 +40,18 @@ func (h *Handler) AllServicesActive(sb *pb.Surebet) *SurebetError {
 	}
 	return nil
 }
+func (h *Handler) HasAnyBet(sb *pb.Surebet) bool {
+	for i := range sb.Members {
+		bet := sb.Members[i].GetBet()
+		if bet != nil {
+			if bet.GetStatus() == status.StatusOk {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (h *Handler) AnyDisabled(sb *pb.Surebet) *SurebetError {
 	for i := range sb.Members {
 		if sb.Members[i].BetConfig == nil {

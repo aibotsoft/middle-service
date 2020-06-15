@@ -182,9 +182,9 @@ func (h *Handler) ProcessSurebet(sb *pb.Surebet) *SurebetError {
 }
 
 func (h *Handler) SaveSurebet(sb *pb.Surebet) {
-	//if err := AllCheckCalcStatusOk(sb); err != nil {
-	//	return
-	//}
+	if !h.HasAnyBet(sb) {
+		return
+	}
 	if err := h.store.SaveFortedSurebet(sb); err != nil {
 		h.log.Error(err)
 	}
@@ -193,9 +193,9 @@ func (h *Handler) SaveSurebet(sb *pb.Surebet) {
 		h.log.Error(err)
 	}
 	//h.log.Infow("save sides", "0", sb.Members[0], "1", sb.Members[1])
-	//if err := h.store.SaveSide(sb); err != nil {
-	//	h.log.Error(err)
-	//}
+	if err := h.store.SaveSide(sb); err != nil {
+		h.log.Error(err)
+	}
 }
 func (h *Handler) SurebetLoop(sb *pb.Surebet) {
 	_, ok := h.store.Cache.Get(sb.FortedSurebetId)
