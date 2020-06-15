@@ -61,6 +61,8 @@ func (s *Store) SaveFortedSurebet(sb *pb.Surebet) error {
 }
 func (s *Store) SaveCalc(sb *pb.Surebet) error {
 	_, err := s.db.Exec("dbo.uspSaveCalc",
+		sql.Named("SurebetId", sb.SurebetId),
+		sql.Named("FortedSurebetId", sb.FortedSurebetId),
 		sql.Named("Profit", sb.Calc.Profit),
 		sql.Named("FirstName", sb.Calc.FirstName),
 		sql.Named("SecondName", sb.Calc.SecondName),
@@ -70,8 +72,6 @@ func (s *Store) SaveCalc(sb *pb.Surebet) error {
 		sql.Named("SecondIndex", sb.Calc.SecondIndex),
 		sql.Named("WinDiff", sb.Calc.WinDiff),
 		sql.Named("WinDiffRel", sb.Calc.WinDiffRel),
-		sql.Named("FortedSurebetId", sb.FortedSurebetId),
-		sql.Named("SurebetId", sb.SurebetId),
 	)
 	if err != nil {
 		return errors.Wrap(err, "uspSaveCalc error")
