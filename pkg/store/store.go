@@ -78,3 +78,60 @@ func (s *Store) SaveCalc(sb *pb.Surebet) error {
 	}
 	return nil
 }
+
+func (s *Store) SaveSide(sb *pb.Surebet) error {
+	for i, side := range sb.Members {
+		_, err := s.db.Exec("dbo.uspSaveSide",
+			sql.Named("SurebetId", sb.SurebetId),
+			sql.Named("SideIndex", i),
+			sql.Named("ServiceName", side.ServiceName),
+			sql.Named("SportName", side.SportName),
+			sql.Named("LeagueName", side.LeagueName),
+			sql.Named("Home", side.Home),
+			sql.Named("Away", side.Away),
+			sql.Named("MarketName", side.MarketName),
+			sql.Named("Price", side.Price),
+			sql.Named("Initiator", side.Initiator),
+			sql.Named("Starts", sb.Starts),
+			sql.Named("EventId", side.EventId),
+
+			sql.Named("CheckId", side.Check.Id),
+			sql.Named("AccountId", side.Check.AccountId),
+			sql.Named("AccountLogin", side.Check.AccountLogin),
+			sql.Named("CheckStatus", side.Check.Status),
+			sql.Named("StatusInfo", side.Check.StatusInfo),
+			sql.Named("CountLine", side.Check.CountLine),
+			sql.Named("CountEvent", side.Check.CountEvent),
+			sql.Named("AmountEvent", side.Check.AmountEvent),
+			sql.Named("MinBet", side.Check.MinBet),
+			sql.Named("MaxBet", side.Check.MaxBet),
+			sql.Named("Balance", side.Check.Balance),
+			sql.Named("CheckPrice", side.Check.Price),
+			sql.Named("Currency", side.Check.Currency),
+			sql.Named("CheckDone", side.Check.Done),
+
+			sql.Named("CalcStatus", side.GetCheckCalc().GetStatus()),
+			sql.Named("MaxStake", side.GetCheckCalc().GetMaxStake()),
+			sql.Named("MinStake", side.GetCheckCalc().GetMinStake()),
+			sql.Named("MaxWin", side.GetCheckCalc().GetMaxWin()),
+			sql.Named("Stake", side.GetCheckCalc().GetStake()),
+			sql.Named("Win", side.GetCheckCalc().GetWin()),
+			sql.Named("IsFirst", side.GetCheckCalc().GetIsFirst()),
+
+			sql.Named("ToBetId", side.GetToBet().GetId()),
+			sql.Named("TryCount", side.GetToBet().GetTryCount()),
+
+			sql.Named("BetStatus", side.GetBet().GetStatus()),
+			sql.Named("BetStatusInfo", side.GetBet().GetStatusInfo()),
+			sql.Named("Start", side.GetBet().GetStart()),
+			sql.Named("Done", side.GetBet().GetDone()),
+			sql.Named("BetPrice", side.GetBet().GetPrice()),
+			sql.Named("BetStake", side.GetBet().GetStake()),
+			sql.Named("ApiBetId", side.GetBet().GetApiBetId()),
+		)
+		if err != nil {
+			return errors.Wrap(err, "uspSaveCalc error")
+		}
+	}
+	return nil
+}
