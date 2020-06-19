@@ -11,7 +11,7 @@ create table dbo.Side
     MarketName    varchar(1000),
     Price         decimal(9, 5),
     Initiator     bit,
-    Starts        datetimeoffset,
+    Starts        datetimeoffset(2),
     EventId       varchar(1000),
 
     CheckId       bigint,
@@ -28,6 +28,7 @@ create table dbo.Side
     CheckPrice    decimal(9, 5),
     Currency      decimal(9, 5),
     CheckDone     bigint,
+    MiddleMargin     decimal(9, 5),
 
     CalcStatus    varchar(1000),
     MaxStake      decimal(9, 5),

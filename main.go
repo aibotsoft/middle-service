@@ -9,6 +9,7 @@ import (
 	"github.com/aibotsoft/micro/sqlserver"
 	"github.com/aibotsoft/middle-service/pkg/clients"
 	"github.com/aibotsoft/middle-service/pkg/store"
+	"github.com/aibotsoft/middle-service/services/collector"
 	"github.com/aibotsoft/middle-service/services/handler"
 	"github.com/aibotsoft/middle-service/services/receiver"
 	"github.com/aibotsoft/middle-service/services/server"
@@ -39,8 +40,8 @@ func main() {
 		errc <- fmt.Errorf("%s", <-c)
 	}()
 
-	//c := collector.New(cfg, log, sto, cli)
-	//go c.CollectJob()
+	c := collector.New(cfg, log, sto, cli)
+	go c.CollectJob()
 	r := receiver.New(cfg, log, h)
 	r.Subscribe()
 

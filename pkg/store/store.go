@@ -6,6 +6,7 @@ import (
 	pb "github.com/aibotsoft/gen/fortedpb"
 	"github.com/aibotsoft/micro/cache"
 	"github.com/aibotsoft/micro/config"
+	mssql "github.com/denisenkom/go-mssqldb"
 	"github.com/dgraph-io/ristretto"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -64,6 +65,12 @@ func (s *Store) SaveCalc(sb *pb.Surebet) error {
 		sql.Named("SurebetId", sb.SurebetId),
 		sql.Named("FortedSurebetId", sb.FortedSurebetId),
 		sql.Named("Profit", sb.Calc.Profit),
+		sql.Named("EffectiveProfit", sb.Calc.EffectiveProfit),
+		sql.Named("MiddleDiff", sb.Calc.MiddleDiff),
+		sql.Named("MiddleMargin", sb.Calc.MiddleMargin),
+		sql.Named("HoursBeforeEvent", sb.Calc.HoursBeforeEvent),
+		sql.Named("Gross", sb.Calc.Gross),
+		sql.Named("SurebetType", sb.Calc.SurebetType),
 		sql.Named("FirstName", sb.Calc.FirstName),
 		sql.Named("SecondName", sb.Calc.SecondName),
 		sql.Named("LowerWinIndex", sb.Calc.LowerWinIndex),
@@ -92,7 +99,7 @@ func (s *Store) SaveSide(sb *pb.Surebet) error {
 			sql.Named("MarketName", side.MarketName),
 			sql.Named("Price", side.Price),
 			sql.Named("Initiator", side.Initiator),
-			sql.Named("Starts", sb.Starts),
+			sql.Named("Starts", side.Starts),
 			sql.Named("EventId", side.EventId),
 
 			sql.Named("CheckId", side.Check.Id),
@@ -109,6 +116,7 @@ func (s *Store) SaveSide(sb *pb.Surebet) error {
 			sql.Named("CheckPrice", side.Check.Price),
 			sql.Named("Currency", side.Check.Currency),
 			sql.Named("CheckDone", side.Check.Done),
+			sql.Named("MiddleMargin", side.Check.MiddleMargin),
 
 			sql.Named("CalcStatus", side.GetCheckCalc().GetStatus()),
 			sql.Named("MaxStake", side.GetCheckCalc().GetMaxStake()),
@@ -132,6 +140,19 @@ func (s *Store) SaveSide(sb *pb.Surebet) error {
 		if err != nil {
 			return errors.Wrap(err, "uspSaveCalc error")
 		}
+	}
+	return nil
+}
+func (s *Store) SaveBetList(results []pb.BetResult) error {
+	if len(results) == 0 {
+		return nil
+	}
+	return nil
+	tvp := mssql.TVP{TypeName: "BetListType", Value: results}
+
+	_, err := s.db.Exec("dbo.uspSaveBetList", tvp)
+	if err != nil {
+		return errors.Wrap(err, "uspSaveResults error")
 	}
 	return nil
 }

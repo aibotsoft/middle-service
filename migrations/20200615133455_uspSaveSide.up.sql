@@ -24,6 +24,7 @@ create or alter proc dbo.uspSaveSide @SurebetId bigint,
                                      @CheckPrice decimal(9, 5) = null,
                                      @Currency decimal(9, 5) = null,
                                      @CheckDone bigint = null,
+                                     @MiddleMargin decimal(9, 5) = null,
                                      @CalcStatus varchar(1000) = null,
                                      @MaxStake decimal(9, 3) = null,
                                      @MinStake decimal(9, 5) = null,
@@ -50,14 +51,18 @@ begin
         insert into dbo.Side (SurebetId, SideIndex, ServiceName, SportName, LeagueName, Home, Away, MarketName, Price,
                               Initiator, Starts, EventId, CheckId, AccountId, AccountLogin, CheckStatus, StatusInfo,
                               CountLine, CountEvent, AmountEvent, MinBet, MaxBet, Balance, CheckPrice, Currency,
-                              CheckDone, CalcStatus, MaxStake, MinStake, MaxWin, Stake, Win, IsFirst, ToBetId, TryCount,
+                              CheckDone,
+                              MiddleMargin,
+                              CalcStatus, MaxStake, MinStake, MaxWin, Stake, Win, IsFirst, ToBetId, TryCount,
                               BetStatus, BetStatusInfo, Start, Done, BetPrice, BetStake, ApiBetId)
         output inserted.SurebetId
 
         values (@SurebetId, @SideIndex, @ServiceName, @SportName, @LeagueName, @Home, @Away, @MarketName, @Price,
                 @Initiator, @Starts, @EventId, @CheckId, @AccountId, @AccountLogin, @CheckStatus, @StatusInfo,
                 @CountLine, @CountEvent, @AmountEvent, @MinBet, @MaxBet, @Balance, @CheckPrice, @Currency,
-                @CheckDone, @CalcStatus, @MaxStake, @MinStake, @MaxWin, @Stake, @Win, @IsFirst, @ToBetId, @TryCount,
+                @CheckDone,
+                @MiddleMargin,
+                @CalcStatus, @MaxStake, @MinStake, @MaxWin, @Stake, @Win, @IsFirst, @ToBetId, @TryCount,
                 @BetStatus, @BetStatusInfo, @Start, @Done, @BetPrice, @BetStake, @ApiBetId)
     else
         select @Id

@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	gstatus "google.golang.org/grpc/status"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -21,7 +22,7 @@ import (
 const (
 	repeatMinTimeout    = 3 * time.Second
 	secondBetMaxTry     = 57
-	surebetLoopMaxCount = 5
+	surebetLoopMaxCount = 2
 )
 
 type Handler struct {
@@ -80,7 +81,7 @@ func (h *Handler) CheckLine(ctx context.Context, sb *pb.Surebet, i int64, wg *sy
 		sb.Members[i].Check.Done = util.UnixMsNow()
 		if sb.Members[i].GetCheck().GetStatus() != status.StatusOk {
 			h.log.Infow("check_line_resp", "name", side.ServiceName, "check", response.Side.Check, "marketName", side.MarketName, "sport", side.SportName, "league", side.LeagueName,
-				"home", side.Home, "away", side.Away)
+				"home", side.Home, "away", side.Away, "fid", sb.FortedSurebetId)
 		}
 	}
 }
@@ -197,10 +198,18 @@ func (h *Handler) SaveSurebet(sb *pb.Surebet) {
 		h.log.Error(err)
 	}
 }
+
+var LoopCount = make(map[int64]int)
+
 func (h *Handler) SurebetLoop(sb *pb.Surebet) {
 	_, ok := h.store.Cache.Get(sb.FortedSurebetId)
 	if ok {
-		h.log.Infow("loop_already_exists", "id", sb.FortedSurebetId)
+		//h.log.Infow("loop_already_exists", "id", sb.FortedSurebetId)
+		return
+	}
+	_, ok = h.store.Cache.Get("permanent:" + strconv.FormatInt(sb.FortedSurebetId, 10))
+	if ok {
+		//h.log.Infow("loop_permanent_exists", "id", sb.FortedSurebetId)
 		return
 	}
 	h.store.Cache.Set(sb.FortedSurebetId, true, 1)
@@ -218,15 +227,29 @@ func (h *Handler) SurebetLoop(sb *pb.Surebet) {
 			}
 			h.log.Infow("result", "err", err, "name", err.ServiceName, "time", ElapsedFromSurebetId(sb.SurebetId), "loop", i, "fid", sb.FortedSurebetId, "other", otherName)
 			if err.Permanent {
+				//if sb.
 				//h.log.Info("error permanent, so returning...")
+				h.store.Cache.SetWithTTL("permanent:"+strconv.FormatInt(sb.FortedSurebetId, 10), true, 1, time.Minute*5)
 				return
 			}
+			if sb.Calc.EffectiveProfit < -6 {
+				h.log.Infow("profit_too_low, so returning...", "profit", sb.Calc.EffectiveProfit, "fid", sb.FortedSurebetId)
+				h.store.Cache.SetWithTTL("permanent:"+strconv.FormatInt(sb.FortedSurebetId, 10), true, 1, time.Minute*2)
+				return
+			}
+			time.Sleep(repeatMinTimeout + time.Millisecond*100*time.Duration(i))
 		} else {
 			go h.tel.Sendf("middle v=%v, l=%v, p=%v, f=%v, s=%v, t=%v", betAmount(sb), i, sb.Calc.Profit, sb.Members[0].ServiceName, sb.Members[1].ServiceName, ElapsedFromSurebetId(sb.SurebetId))
 			h.log.Infow("placed_middle", "profit", sb.Calc.Profit, "time", ElapsedFromSurebetId(sb.SurebetId), "loop", i, "fid", sb.FortedSurebetId)
 			i = 0
+			h.store.Cache.SetWithTTL("permanent:"+strconv.FormatInt(sb.FortedSurebetId, 10), true, 1, time.Minute*180)
 		}
-		time.Sleep(repeatMinTimeout + time.Millisecond*100*time.Duration(i))
+	}
+	LoopCount[sb.FortedSurebetId] += 1
+	//h.log.Debugw("loop_count", "fid", sb.FortedSurebetId, "count", LoopCount[sb.FortedSurebetId])
+	if LoopCount[sb.FortedSurebetId] > 2 {
+		h.log.Debugw("add_permanent", "fid", sb.FortedSurebetId, "count", LoopCount[sb.FortedSurebetId], "EP", sb.Calc.EffectiveProfit)
+		h.store.Cache.SetWithTTL("permanent:"+strconv.FormatInt(sb.FortedSurebetId, 10), true, 1, time.Minute*3)
 	}
 }
 

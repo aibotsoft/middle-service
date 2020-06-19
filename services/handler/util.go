@@ -14,10 +14,12 @@ import (
 var d100 = decimal.NewFromInt(100)
 
 func ClearSurebet(sb *pb.Surebet) {
-	sb.Calc = pb.Calc{}
+	temp := sb.Calc.MiddleDiff
+	sb.Calc = pb.Calc{MiddleDiff: temp}
 	for i := range sb.Members {
-		sb.Members[i].Check = nil
 		sb.Members[i].BetConfig = nil
+		sb.Members[i].Check = nil
+		sb.Members[i].CheckCalc = nil
 		sb.Members[i].ToBet = nil
 		sb.Members[i].Bet = nil
 	}
