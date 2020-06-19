@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/aibotsoft/gen v0.0.0-20200531091936-c4d5d714bf82
 	github.com/aibotsoft/micro v0.0.0-20200531091141-36c4ab85b13e
+	github.com/denisenkom/go-mssqldb v0.0.0-20200428022330-06a60b6afbbc
 	github.com/dgraph-io/ristretto v0.0.2
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jmoiron/sqlx v1.2.0
